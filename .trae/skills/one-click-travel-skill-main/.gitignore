@@ -1,0 +1,14 @@
+output/
+*.html
+!assets/html-template/template.html
+*-travel-data.json
+*.zip
+__pycache__/
+*.pyc
+.DS_Store
+Thumbs.db
+
+# Tencent Cloud EdgeOne
+.env
+.edgeone/*
+.tef_dist/*

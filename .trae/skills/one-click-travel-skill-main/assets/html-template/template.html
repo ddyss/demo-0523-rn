@@ -1,0 +1,1740 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{TITLE}}</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background: linear-gradient(135deg, #5876d6 0%, #5e4b9a 100%);
+      min-height: 100vh;
+      color: #1f2933;
+    }
+    .navbar {
+      background: rgba(255, 255, 255, 0.98);
+      backdrop-filter: blur(10px);
+      box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+      position: sticky;
+      top: 0;
+      z-index: 10000;
+    }
+    .navbar-container {
+      max-width: 1600px;
+      margin: 0 auto;
+      padding: 0 25px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+    }
+    .navbar-brand {
+      font-size: 20px;
+      font-weight: 700;
+      color: #4f46e5;
+      padding: 15px 0;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .navbar-menu {
+      display: flex;
+      gap: 5px;
+      list-style: none;
+      overflow-x: auto;
+    }
+    .navbar-item {
+      padding: 18px 20px;
+      cursor: pointer;
+      font-size: 15px;
+      font-weight: 500;
+      color: #667085;
+      transition: all 0.2s ease;
+      border-bottom: 3px solid transparent;
+      white-space: nowrap;
+    }
+    .navbar-item:hover,
+    .navbar-item.active {
+      color: #4f46e5;
+      border-bottom-color: #4f46e5;
+      background: rgba(79, 70, 229, 0.06);
+    }
+    .page { display: none; }
+    .page.active { display: block; }
+    .header {
+      background: rgba(255,255,255,0.95);
+      color: #333;
+      padding: 25px;
+      text-align: center;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+      backdrop-filter: blur(10px);
+    }
+    .header h1 {
+      font-size: 30px;
+      font-weight: 750;
+      margin-bottom: 10px;
+      color: #4338ca;
+      letter-spacing: 0;
+    }
+    .header p {
+      font-size: 15px;
+      color: #667085;
+      line-height: 1.6;
+    }
+    .summary {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 12px;
+    }
+    .pill {
+      background: #eef2ff;
+      color: #4338ca;
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 600;
+    }
+    .container {
+      max-width: 1600px;
+      margin: 25px auto;
+      padding: 0 25px;
+    }
+    #map-container {
+      width: 100%;
+      height: 680px;
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+      overflow: hidden;
+      position: relative;
+    }
+    .legend {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      background: white;
+      padding: 18px;
+      border-radius: 12px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+      z-index: 1000;
+      font-size: 13px;
+      max-height: 560px;
+      overflow-y: auto;
+      width: min(320px, calc(100% - 40px));
+    }
+    .legend h3 {
+      font-size: 15px;
+      font-weight: 650;
+      margin-bottom: 12px;
+      color: #333;
+      border-bottom: 2px solid #4f46e5;
+      padding-bottom: 8px;
+    }
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 8px 0;
+      padding: 8px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    .legend-item:hover { background: #f8f9fa; }
+    .legend-color {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      border: 2px solid white;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+    }
+    .legend-name { font-weight: 600; color: #333; font-size: 13px; }
+    .legend-meta { color: #667085; font-size: 12px; line-height: 1.4; }
+    .info-panel {
+      background: white;
+      padding: 25px;
+      border-radius: 16px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+      margin-top: 25px;
+    }
+    .section-title {
+      font-size: 20px;
+      font-weight: 650;
+      color: #333;
+      margin-bottom: 18px;
+      padding-left: 15px;
+      border-left: 5px solid #4f46e5;
+      letter-spacing: 0;
+    }
+    .hotel-grid,
+    .attractions-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 18px;
+    }
+    .hotel-card {
+      background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+      transition: all 0.25s ease;
+      border-left: 5px solid #4f46e5;
+    }
+    .hotel-card:hover,
+    .attraction-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+    }
+    .hotel-name {
+      font-size: 17px;
+      font-weight: 650;
+      color: #1a1a1a;
+      margin-bottom: 8px;
+      line-height: 1.35;
+    }
+    .hotel-address,
+    .hotel-summary {
+      color: #667085;
+      font-size: 14px;
+      line-height: 1.7;
+      margin-bottom: 8px;
+    }
+    .hotel-info {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      margin: 8px 0;
+      flex-wrap: wrap;
+    }
+    .hotel-rating {
+      display: inline-flex;
+      align-items: center;
+      background: #fef3c7;
+      color: #b45309;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 650;
+    }
+    .hotel-price {
+      font-size: 17px;
+      font-weight: 750;
+      color: #e74c3c;
+    }
+    .hotel-features,
+    .attraction-features,
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 10px;
+    }
+    .feature-tag,
+    .attraction-tag {
+      background: #e0e7ff;
+      color: #3730a3;
+      padding: 4px 10px;
+      border-radius: 15px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .hotel-detail-btn,
+    .source-link,
+    .attraction-link {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 38px;
+      padding: 9px 14px;
+      background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
+      color: white;
+      text-decoration: none;
+      border: 0;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 650;
+      cursor: pointer;
+    }
+    .hotel-detail-btn.secondary,
+    .source-link {
+      background: #ffffff;
+      color: #4338ca;
+      border: 1px solid #c7d2fe;
+    }
+    .notes-list {
+      color: #475467;
+      line-height: 1.8;
+      padding-left: 20px;
+      margin-bottom: 18px;
+    }
+    .attractions-hero {
+      background: rgba(255,255,255,0.95);
+      color: #1f2933;
+      padding: 32px 25px;
+      text-align: center;
+      margin: 25px auto;
+      max-width: 1600px;
+      border-radius: 16px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+    }
+    .attractions-hero h1 {
+      font-size: 30px;
+      font-weight: 750;
+      color: #4338ca;
+      margin-bottom: 10px;
+    }
+    .attractions-grid {
+      max-width: 1600px;
+      margin: 30px auto;
+      padding: 0 25px 25px;
+    }
+    .attraction-card {
+      background: white;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+      transition: all 0.25s ease;
+    }
+    .attraction-image {
+      width: 100%;
+      height: 230px;
+      object-fit: cover;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #eef2ff;
+      color: #667085;
+      font-weight: 650;
+    }
+    .attraction-content { padding: 20px; }
+    .attraction-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+    .attraction-rank {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 32px;
+      height: 32px;
+      background: linear-gradient(135deg, #5876d6 0%, #5e4b9a 100%);
+      color: white;
+      border-radius: 50%;
+      font-weight: 750;
+      font-size: 14px;
+      flex-shrink: 0;
+    }
+    .attraction-name {
+      font-size: 19px;
+      font-weight: 650;
+      color: #1a1a1a;
+      flex: 1;
+      line-height: 1.35;
+    }
+    .attraction-rating {
+      background: #fef3c7;
+      color: #b45309;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 650;
+      white-space: nowrap;
+    }
+    .attraction-location {
+      color: #667085;
+      font-size: 14px;
+      margin-bottom: 10px;
+      line-height: 1.6;
+    }
+    .attraction-description {
+      color: #344054;
+      font-size: 14px;
+      line-height: 1.75;
+      margin-bottom: 15px;
+    }
+    .attraction-price {
+      background: #fff5f5;
+      border-left: 4px solid #e74c3c;
+      padding: 10px 12px;
+      margin-top: 12px;
+      border-radius: 6px;
+      font-size: 13px;
+      color: #c0392b;
+      font-weight: 650;
+    }
+    .sources-list {
+      color: #475467;
+      line-height: 1.8;
+      padding-left: 20px;
+    }
+    .sources-list a { color: #4338ca; }
+    .notification {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      max-width: 400px;
+      z-index: 10001;
+      background: #4338ca;
+      color: white;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      padding: 14px 18px;
+      line-height: 1.5;
+      display: none;
+    }
+    .map-fallback {
+      padding: 18px;
+      color: #667085;
+      line-height: 1.7;
+      background: white;
+      height: 100%;
+      overflow: auto;
+    }
+    .route-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1.1fr) minmax(420px, 0.9fr);
+      gap: 25px;
+      align-items: start;
+    }
+    .route-timeline-wrapper,
+    .route-map-panel {
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+      overflow: hidden;
+    }
+    .route-timeline-wrapper {
+      padding: 30px;
+      max-height: 750px;
+      overflow-y: auto;
+    }
+    .route-timeline-wrapper::-webkit-scrollbar { width: 8px; }
+    .route-timeline-wrapper::-webkit-scrollbar-track {
+      background: #f1f1f1;
+      border-radius: 4px;
+    }
+    .route-timeline-wrapper::-webkit-scrollbar-thumb {
+      background: #667eea;
+      border-radius: 4px;
+    }
+    .route-map-panel {
+      position: sticky;
+      top: 86px;
+    }
+    #route-map-container {
+      width: 100%;
+      height: 750px;
+      background: #f8fafc;
+      overflow: hidden;
+    }
+    .route-day-section {
+      margin-bottom: 35px;
+    }
+    .route-day-section:last-child { margin-bottom: 0; }
+    .route-day-title {
+      font-size: 22px;
+      font-weight: 700;
+      color: #333;
+      margin-bottom: 4px;
+      padding: 12px 15px;
+      border-left: 5px solid #667eea;
+      border-radius: 8px;
+      letter-spacing: 0;
+    }
+    .route-day-weather {
+      font-size: 13px;
+      color: #667085;
+      padding: 0 15px 8px 20px;
+    }
+    .route-day-summary {
+      color: #667085;
+      font-size: 14px;
+      line-height: 1.7;
+      margin: 0 0 18px 15px;
+    }
+    .route-day-section.day1 .route-day-title {
+      border-left-color: #667eea;
+      background: linear-gradient(90deg, #f0f4ff 0%, transparent 100%);
+    }
+    .route-day-section.day2 .route-day-title {
+      border-left-color: #f59e0b;
+      background: linear-gradient(90deg, #fffbeb 0%, transparent 100%);
+    }
+    .route-day-section.day3 .route-day-title {
+      border-left-color: #10b981;
+      background: linear-gradient(90deg, #ecfdf5 0%, transparent 100%);
+    }
+    .route-timeline {
+      position: relative;
+      padding-left: 20px;
+    }
+    .timeline-item {
+      position: relative;
+      padding-left: 38px;
+      padding-bottom: 18px;
+    }
+    .timeline-item::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 40px;
+      bottom: 0;
+      width: 2px;
+      background: #667eea;
+    }
+    .timeline-item:last-child::before { display: none; }
+    .route-day-section.day2 .timeline-item::before { background: #f59e0b; }
+    .route-day-section.day3 .timeline-item::before { background: #10b981; }
+    .timeline-marker {
+      position: absolute;
+      left: -20px;
+      top: 0;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+      z-index: 2;
+    }
+    .route-day-section.day2 .timeline-marker {
+      background: linear-gradient(135deg, #f59e0b 0%, #f97316 100%);
+      box-shadow: 0 4px 12px rgba(245, 158, 11, 0.4);
+    }
+    .route-day-section.day3 .timeline-marker {
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+    }
+    .timeline-item.end .timeline-marker {
+      background: linear-gradient(135deg, #9ca3af, #6b7280);
+      box-shadow: 0 4px 12px rgba(107, 114, 128, 0.35);
+    }
+    .timeline-card {
+      background: #ffffff;
+      border-radius: 12px;
+      padding: 18px;
+      box-shadow: 0 3px 14px rgba(15, 23, 42, 0.06);
+      border: 1px solid #f1f5f9;
+    }
+    .timeline-time {
+      display: inline-flex;
+      align-items: center;
+      width: fit-content;
+      background: #fef3c7;
+      color: #b45309;
+      padding: 6px 12px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 800;
+      margin-bottom: 12px;
+    }
+    .timeline-title {
+      font-size: 19px;
+      color: #111827;
+      margin-bottom: 8px;
+      line-height: 1.4;
+      letter-spacing: 0;
+      font-weight: 800;
+    }
+    .timeline-description {
+      color: #4b5563;
+      line-height: 1.75;
+      font-size: 14px;
+      margin-bottom: 12px;
+    }
+    .timeline-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 10px;
+      color: #667085;
+      font-size: 12px;
+    }
+    .timeline-meta span {
+      background: #dcfce7;
+      color: #047857;
+      border-radius: 999px;
+      padding: 6px 10px;
+      font-weight: 750;
+    }
+    .timeline-transport {
+      background: #dbeafe;
+      border-left: 4px solid #667eea;
+      padding: 12px 14px;
+      border-radius: 8px;
+      display: grid;
+      gap: 5px;
+      margin-top: 10px;
+    }
+    .route-day-section.day2 .timeline-transport { border-left-color: #f59e0b; }
+    .route-day-section.day3 .timeline-transport { border-left-color: #10b981; }
+    .transport-label {
+      font-size: 12px;
+      color: #1d4ed8;
+      font-weight: 800;
+    }
+    .transport-detail {
+      color: #1f2937;
+      font-size: 14px;
+      font-weight: 750;
+    }
+    .transport-note {
+      color: #334155;
+      line-height: 1.6;
+      font-size: 13px;
+    }
+    .timeline-tip {
+      margin-top: 10px;
+      background: #fff7ed;
+      border-left: 4px solid #fb923c;
+      color: #9a3412;
+      border-radius: 8px;
+      padding: 9px 12px;
+      font-size: 13px;
+      line-height: 1.6;
+    }
+    .timeline-price {
+      margin-top: 12px;
+      background: #fef3c7;
+      border-left: 4px solid #f59e0b;
+      color: #92400e;
+      border-radius: 8px;
+      padding: 11px 14px;
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      font-size: 13px;
+      line-height: 1.6;
+      font-weight: 650;
+    }
+    .timeline-price-icon { flex-shrink: 0; }
+    .route-empty {
+      padding: 20px;
+      color: #667085;
+      line-height: 1.7;
+      background: white;
+      border-radius: 12px;
+    }
+    .route-marker {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.22);
+    }
+    .route-marker.start,
+    .route-marker.end {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      color: white;
+      font-size: 18px;
+    }
+    .route-marker.start { background: linear-gradient(135deg, #667eea, #10b981); }
+    .route-marker.end { background: linear-gradient(135deg, #9ca3af, #6b7280); }
+    .route-marker.transit {
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      background: white;
+      border: 3px solid currentColor;
+      font-size: 12px;
+    }
+    .route-marker.attraction {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      color: white;
+      border: 3px solid white;
+      font-size: 13px;
+    }
+    .transport-chip {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: white;
+      border: 2px solid currentColor;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.18);
+      font-size: 17px;
+    }
+    @media (max-width: 1024px) {
+      .route-layout { grid-template-columns: 1fr; }
+      .route-map-panel {
+        position: static;
+      }
+      .route-timeline-wrapper { max-height: none; padding: 20px 15px; }
+      #route-map-container { height: 350px; }
+    }
+    @media (max-width: 480px) {
+      #route-map-container { height: 280px; }
+      .route-timeline-wrapper { padding: 15px 12px; }
+      .route-day-title { font-size: 16px; padding: 8px 10px; }
+      .timeline-card { padding: 14px; }
+    }
+    @media (max-width: 768px) {
+      .navbar-container { flex-direction: column; align-items: stretch; padding: 0 15px; }
+      .navbar-brand { text-align: center; padding-bottom: 4px; }
+      .navbar-menu { justify-content: center; }
+      .navbar-item { padding: 12px 14px; font-size: 14px; }
+      .header h1, .attractions-hero h1 { font-size: 24px; }
+      .summary {
+        flex-direction: column;
+        align-items: center;
+      }
+      .pill {
+        max-width: 100%;
+        text-align: center;
+      }
+      .container, .attractions-grid { padding: 0 15px 20px; }
+      #map-container { height: 460px; }
+      .legend {
+        position: relative;
+        top: auto;
+        right: auto;
+        width: 100%;
+        max-height: none;
+        margin-top: 15px;
+      }
+      .hotel-grid, .attractions-grid { grid-template-columns: 1fr; }
+    }
+
+    /* Weather Section */
+    .weather-section {
+      background: white;
+      border-radius: 16px;
+      padding: 25px;
+      margin: 25px auto;
+      max-width: 1600px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    }
+    .weather-header {
+      margin-bottom: 20px;
+    }
+    .weather-title {
+      font-size: 20px;
+      font-weight: 650;
+      color: #333;
+      padding-left: 15px;
+      border-left: 5px solid #4f46e5;
+    }
+    .weather-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 18px;
+      margin-bottom: 20px;
+    }
+    .weather-card {
+      background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+      border-radius: 12px;
+      padding: 20px;
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+      transition: all 0.25s ease;
+      border-left: 5px solid #4f46e5;
+    }
+    .weather-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+    }
+    .weather-date {
+      flex: 0 0 auto;
+      text-align: center;
+      min-width: 80px;
+    }
+    .weather-date-text {
+      font-size: 14px;
+      font-weight: 600;
+      color: #4338ca;
+    }
+    .weather-week {
+      font-size: 13px;
+      color: #667085;
+      margin-top: 4px;
+    }
+    .weather-icon {
+      font-size: 48px;
+      flex: 0 0 auto;
+    }
+    .weather-info {
+      flex: 1;
+    }
+    .weather-condition {
+      font-size: 15px;
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 6px;
+    }
+    .weather-temp {
+      font-size: 14px;
+      color: #667085;
+    }
+    .weather-tips {
+      background: #eef2ff;
+      border-radius: 12px;
+      padding: 18px;
+      margin-top: 20px;
+    }
+    .weather-tips-title {
+      font-size: 16px;
+      font-weight: 650;
+      color: #4338ca;
+      margin-bottom: 12px;
+    }
+    .weather-tips-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    .weather-tips-list li {
+      color: #475467;
+      line-height: 1.8;
+      padding: 6px 0;
+      padding-left: 20px;
+      position: relative;
+    }
+    .weather-tips-list li::before {
+      content: "•";
+      color: #4f46e5;
+      font-weight: bold;
+      position: absolute;
+      left: 0;
+    }
+    @media (max-width: 768px) {
+      .weather-cards { grid-template-columns: 1fr; }
+      .weather-card { flex-direction: column; text-align: center; }
+    }
+
+    /* Route Weather Section */
+    .route-weather-section {
+      background: white;
+      border-radius: 16px;
+      padding: 25px;
+      margin-bottom: 25px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    }
+    .route-weather-title {
+      font-size: 20px;
+      font-weight: 650;
+      color: #333;
+      margin-bottom: 20px;
+      padding-left: 15px;
+      border-left: 5px solid #4f46e5;
+    }
+    .route-weather-days {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+    .route-weather-day {
+      background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+      border-radius: 12px;
+      padding: 18px;
+      border-left: 5px solid #4f46e5;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    }
+    .route-weather-day-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+    .route-weather-day-label {
+      background: #4f46e5;
+      color: white;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 650;
+    }
+    .route-weather-day-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: #333;
+    }
+    .route-weather-day-body {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      flex-wrap: wrap;
+    }
+    .route-weather-icon {
+      font-size: 32px;
+    }
+    .route-weather-condition {
+      font-size: 15px;
+      font-weight: 600;
+      color: #333;
+    }
+    .route-weather-temp {
+      font-size: 14px;
+      color: #667085;
+    }
+    .route-weather-advice {
+      font-size: 13px;
+      color: #4f46e5;
+      background: #eef2ff;
+      padding: 4px 10px;
+      border-radius: 15px;
+      font-weight: 500;
+    }
+    @media (max-width: 768px) {
+      .route-weather-day-body { flex-direction: column; align-items: flex-start; }
+    }
+
+    /* Food Section */
+    #food-map-container {
+      width: 100%;
+      height: 680px;
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+      overflow: hidden;
+      position: relative;
+      margin-bottom: 25px;
+    }
+    .food-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+      gap: 24px;
+      margin-top: 20px;
+    }
+    .food-section-title {
+      font-size: 24px;
+      font-weight: 700;
+      color: #333;
+      margin: 40px 0 20px 0;
+      padding-left: 15px;
+      border-left: 5px solid #ff6b35;
+    }
+    .food-section-title.snack {
+      border-left-color: #10b981;
+    }
+    /* Restaurant cards - Orange theme */
+    .food-card.restaurant {
+      background: white;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+      transition: all 0.3s ease;
+      border: 1px solid #f0f0f0;
+    }
+    .food-card.restaurant:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 12px 32px rgba(255, 107, 53, 0.15);
+    }
+    .food-card.restaurant .food-card-header {
+      background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
+      padding: 20px;
+      color: white;
+      position: relative;
+    }
+    .food-card.restaurant .food-card-header::after {
+      content: "🍽️";
+      position: absolute;
+      right: 20px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 48px;
+      opacity: 0.2;
+    }
+    .food-card.restaurant .food-name {
+      font-size: 20px;
+      font-weight: 700;
+      color: white;
+      margin: 0 0 8px 0;
+      line-height: 1.3;
+      padding-right: 60px;
+    }
+    .food-card.restaurant .food-rating {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      background: rgba(255, 255, 255, 0.25);
+      backdrop-filter: blur(10px);
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 14px;
+      font-weight: 600;
+      color: white;
+    }
+    .food-card.restaurant .food-price {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+      color: #92400e;
+      padding: 8px 14px;
+      border-radius: 20px;
+      font-size: 15px;
+      font-weight: 700;
+    }
+    .food-card.restaurant .food-dish {
+      background: white;
+      color: #ff6b35;
+      padding: 6px 12px;
+      border-radius: 16px;
+      font-size: 13px;
+      font-weight: 600;
+      border: 1.5px solid #ffd4c3;
+      transition: all 0.2s ease;
+    }
+    .food-card.restaurant .food-dish:hover {
+      background: #ff6b35;
+      color: white;
+      border-color: #ff6b35;
+    }
+    .food-card.restaurant .food-link {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 12px 20px;
+      background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
+      color: white;
+      text-decoration: none;
+      border-radius: 10px;
+      font-size: 15px;
+      font-weight: 650;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 12px rgba(255, 107, 53, 0.25);
+    }
+    .food-card.restaurant .food-link::before {
+      content: "🔗";
+      font-size: 16px;
+    }
+    .food-card.restaurant .food-link:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(255, 107, 53, 0.4);
+    }
+    /* Snack cards - Green theme */
+    .food-card.snack {
+      background: white;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+      transition: all 0.3s ease;
+      border: 1px solid #f0f0f0;
+    }
+    .food-card.snack:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 12px 32px rgba(16, 185, 129, 0.15);
+    }
+    .food-card.snack .food-card-header {
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      padding: 20px;
+      color: white;
+      position: relative;
+    }
+    .food-card.snack .food-card-header::after {
+      content: "🍜";
+      position: absolute;
+      right: 20px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 48px;
+      opacity: 0.2;
+    }
+    .food-card.snack .food-name {
+      font-size: 20px;
+      font-weight: 700;
+      color: white;
+      margin: 0 0 8px 0;
+      line-height: 1.3;
+      padding-right: 60px;
+    }
+    .food-card.snack .food-rating {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      background: rgba(255, 255, 255, 0.25);
+      backdrop-filter: blur(10px);
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 14px;
+      font-weight: 600;
+      color: white;
+    }
+    .food-card.snack .food-price {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+      color: #065f46;
+      padding: 8px 14px;
+      border-radius: 20px;
+      font-size: 15px;
+      font-weight: 700;
+    }
+    .food-card.snack .food-dish {
+      background: white;
+      color: #10b981;
+      padding: 6px 12px;
+      border-radius: 16px;
+      font-size: 13px;
+      font-weight: 600;
+      border: 1.5px solid #a7f3d0;
+      transition: all 0.2s ease;
+    }
+    .food-card.snack .food-dish:hover {
+      background: #10b981;
+      color: white;
+      border-color: #10b981;
+    }
+    .food-card.snack .food-link {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 12px 20px;
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      color: white;
+      text-decoration: none;
+      border-radius: 10px;
+      font-size: 15px;
+      font-weight: 650;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);
+    }
+    .food-card.snack .food-link::before {
+      content: "🔗";
+      font-size: 16px;
+    }
+    .food-card.snack .food-link:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
+    }
+    /* Common styles */
+    .food-card-body {
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .food-summary {
+      color: #4b5563;
+      font-size: 14px;
+      line-height: 1.7;
+      padding: 12px 14px;
+      background: #f9fafb;
+      border-radius: 8px;
+      border-left: 3px solid #d1d5db;
+    }
+    .food-station-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .food-station {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      background: #eff6ff;
+      color: #1d4ed8;
+      padding: 6px 12px;
+      border-radius: 16px;
+      font-size: 13px;
+      font-weight: 600;
+    }
+    .food-walk-time {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      background: #f0fdf4;
+      color: #15803d;
+      padding: 6px 12px;
+      border-radius: 16px;
+      font-size: 13px;
+      font-weight: 600;
+    }
+    .food-info {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .food-price-row {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .food-address {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      color: #667085;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+    .food-address::before {
+      content: "📍";
+      flex-shrink: 0;
+      font-size: 16px;
+    }
+    .food-dishes {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      padding: 16px;
+      background: #fafafa;
+      border-radius: 12px;
+    }
+    .food-dishes-label {
+      color: #333;
+      font-size: 14px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .food-dishes-label::before {
+      content: "🔥";
+      font-size: 16px;
+    }
+    .food-dishes-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    @media (max-width: 768px) {
+      .food-grid { grid-template-columns: 1fr; }
+      #food-map-container { height: 460px; }
+    }
+  </style>
+</head>
+<body>
+  <nav class="navbar">
+    <div class="navbar-container">
+      <div class="navbar-brand" onclick="showPage('hotels')">地图旅行助手</div>
+      <ul class="navbar-menu">
+        <li class="navbar-item active" id="nav-hotels" onclick="showPage('hotels')">酒店选择</li>
+        <li class="navbar-item" id="nav-attractions" onclick="showPage('attractions')">目的地景点</li>
+        <li class="navbar-item" id="nav-foods" onclick="showPage('foods')">美食推荐</li>
+        <li class="navbar-item" id="nav-route" onclick="showPage('route')">路线规划</li>
+        <li class="navbar-item" id="nav-sources" onclick="showPage('sources')">数据来源</li>
+      </ul>
+    </div>
+  </nav>
+
+  <div class="page active" id="page-hotels">
+    <header class="header">
+      <h1>{{TITLE}}</h1>
+      <p>高德地图标记 | 景点与酒店推荐 | App 与网页链接 fallback | 信息以实时平台为准</p>
+      <div class="summary">
+        <span class="pill">目的地：{{DESTINATION}}</span>
+        <span class="pill">出发地：{{DEPARTURE}}</span>
+        <span class="pill">预算：{{BUDGET}}</span>
+        <span class="pill">入住：{{CHECKIN_DATE}}</span>
+        <span class="pill">离店：{{CHECKOUT_DATE}}</span>
+        <span class="pill">更新：{{UPDATED_AT}}</span>
+      </div>
+    </header>
+
+    <main class="container">
+      <div id="map-container">
+        <div class="map-fallback">地图加载中...</div>
+        <div class="legend" id="map-legend">
+          <h3>地图点位</h3>
+          <div class="legend-item">正在读取地点...</div>
+        </div>
+      </div>
+
+      {{WEATHER_SECTION}}
+
+      <section class="info-panel">
+        <h2 class="section-title">酒店推荐</h2>
+        <ul class="notes-list">{{TRIP_NOTES}}</ul>
+        <div class="hotel-grid">{{HOTELS}}</div>
+      </section>
+    </main>
+  </div>
+
+  <div class="page" id="page-attractions">
+    <section class="attractions-hero">
+      <h1>{{DESTINATION}}景点清单</h1>
+      <p>按热门程度、动线便利性和首次到访适配度整理</p>
+    </section>
+    <div class="attractions-grid">{{ATTRACTIONS}}</div>
+  </div>
+
+  <div class="page" id="page-foods">
+    <section class="attractions-hero">
+      <h1>{{DESTINATION}}美食推荐</h1>
+      <p>按评分、口碑和推荐菜精选 | 数据来源：大众点评</p>
+    </section>
+    <main class="container">
+      <div id="food-map-container">
+        <div class="map-fallback">美食地图加载中...</div>
+        <div class="legend" id="food-map-legend">
+          <h3>美食地图</h3>
+          <div class="legend-item">正在读取餐厅位置...</div>
+        </div>
+      </div>
+      <section class="info-panel">
+        <h2 class="section-title">餐厅推荐</h2>
+        <div class="food-grid">{{FOODS}}</div>
+      </section>
+    </main>
+  </div>
+
+  <div class="page" id="page-route">
+    <header class="header">
+      <h1>{{TITLE}}路线规划</h1>
+      <p>按天拆分路线 | 地图曲线可视化 | 酒店出发与返程 | 信息以实时平台为准</p>
+      <div class="summary">
+        <span class="pill">目的地：{{DESTINATION}}</span>
+        <span class="pill">预算：{{BUDGET}}</span>
+        <span class="pill">更新：{{UPDATED_AT}}</span>
+      </div>
+    </header>
+    <main class="container route-layout">
+      <section class="route-map-panel">
+        <div id="route-map-container">
+          <div class="map-fallback">路线地图加载中...</div>
+        </div>
+      </section>
+      <section class="route-timeline-wrapper">{{ROUTE_TIMELINE}}</section>
+    </main>
+  </div>
+
+  <div class="page" id="page-sources">
+    <main class="container">
+      <section class="info-panel">
+        <h2 class="section-title">数据来源与说明</h2>
+        <ul class="sources-list">{{SOURCES}}</ul>
+        <p style="margin-top:16px;color:#667085;line-height:1.8;">价格、评分、开放状态、预约规则、交通时刻以平台实时页面为准。若使用美团或小红书数据，请先完成对应 Token 或登录授权。</p>
+      </section>
+    </main>
+  </div>
+
+  <div class="notification" id="notification"></div>
+
+  <script>
+    const MAP_POINTS = {{MAP_POINTS_JSON}};
+    const ROUTES = {{ROUTES_JSON}};
+    const FOODS = {{FOODS_JSON}};
+    const AMAP_KEY = "{{AMAP_KEY}}";
+    const AMAP_SECURITY_JS_CODE = "{{AMAP_SECURITY_JS_CODE}}";
+    let map = null;
+    let routeMap = null;
+    let foodMap = null;
+    let routeMapInitialized = false;
+    let foodMapInitialized = false;
+    let markerIndex = [];
+
+    function showPage(pageName) {
+      document.querySelectorAll(".page").forEach((page) => page.classList.remove("active"));
+      document.querySelectorAll(".navbar-item").forEach((item) => item.classList.remove("active"));
+      const targetPage = document.getElementById(`page-${pageName}`);
+      const navItem = document.getElementById(`nav-${pageName}`);
+      if (targetPage) targetPage.classList.add("active");
+      if (navItem) navItem.classList.add("active");
+      if (pageName === "hotels" && map) {
+        setTimeout(() => map.resize(), 120);
+      }
+      if (pageName === "route") {
+        setTimeout(() => {
+          if (routeMap) routeMap.resize();
+          initRouteMap();
+        }, 120);
+      }
+      if (pageName === "foods") {
+        setTimeout(() => {
+          if (foodMap) foodMap.resize();
+          initFoodMap();
+        }, 120);
+      }
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    function showNotification(message) {
+      const notification = document.getElementById("notification");
+      notification.textContent = message;
+      notification.style.display = "block";
+      setTimeout(() => { notification.style.display = "none"; }, 3800);
+    }
+
+    function openWithFallback(deepLink, webUrl, timeout = 1800) {
+      const isMobile = /Mobile|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+      if (!webUrl) return false;
+      if (!isMobile || !deepLink) {
+        window.open(webUrl, "_blank");
+        return false;
+      }
+      const startTime = Date.now();
+      const iframe = document.createElement("iframe");
+      iframe.style.display = "none";
+      iframe.src = deepLink;
+      document.body.appendChild(iframe);
+      setTimeout(() => {
+        iframe.remove();
+        if (Date.now() - startTime < timeout + 500) {
+          window.open(webUrl, "_blank");
+          showNotification("已打开网页版链接");
+        }
+      }, timeout);
+      showNotification("正在尝试唤起 App");
+      return false;
+    }
+
+    function pointColor(type) {
+      if (type === "酒店") return "#8b5cf6";
+      if (type === "交通") return "#e74c3c";
+      return "#2563eb";
+    }
+
+    function pointIcon(type) {
+      if (type === "酒店") return "酒店";
+      if (type === "交通") return "交通";
+      return "景点";
+    }
+
+    function renderLegend() {
+      const legend = document.getElementById("map-legend");
+      const items = MAP_POINTS.map((point, index) => `
+        <div class="legend-item" onclick="focusPoint(${index})">
+          <span class="legend-color" style="background:${pointColor(point.type)}"></span>
+          <span>
+            <div class="legend-name">${pointIcon(point.type)} ${point.name || ""}</div>
+            <div class="legend-meta">${point.address || ""}</div>
+          </span>
+        </div>
+      `).join("");
+      legend.innerHTML = `<h3>地图点位</h3>${items || "<div class='legend-item'>暂无点位</div>"}`;
+    }
+
+    function renderFallbackMap() {
+      renderLegend();
+      const mapNode = document.getElementById("map-container");
+      const rows = MAP_POINTS.map((point) => `<li><strong>${point.type}</strong> ${point.name}：${point.address || ""} ${point.lng}, ${point.lat}</li>`).join("");
+      mapNode.innerHTML = `<div class="map-fallback"><p>未启用实时高德地图，以下为已收集坐标。</p><p>如需启用实时地图，请在高德开放平台创建 Web端(JS API) Key：<a href="https://console.amap.com/dev/key/app" target="_blank" rel="noopener">创建 Key</a>；准备说明：<a href="https://lbs.amap.com/api/javascript-api-v2/guide/abc/prepare" target="_blank" rel="noopener">查看文档</a>。</p><ul>${rows || "<li>暂无坐标。</li>"}</ul></div>`;
+    }
+
+    function routeColor(route, fallbackIndex) {
+      const colors = ["#667eea", "#f59e0b", "#10b981"];
+      return route.color || colors[fallbackIndex % colors.length];
+    }
+
+    function transportIcon(value) {
+      const icons = {
+        metro: "🚇",
+        walk: "🚶",
+        ferry: "🚢",
+        tram: "🚡",
+        bus: "🚌",
+        taxi: "🚗",
+        train: "🚄"
+      };
+      return icons[value] || "";
+    }
+
+    function validPosition(point) {
+      const pos = point.position || [];
+      return pos.length === 2 && pos[0] !== "" && pos[1] !== "" && !Number.isNaN(Number(pos[0])) && !Number.isNaN(Number(pos[1]));
+    }
+
+    function generateSmoothPath(start, end, curveDir) {
+      const points = [];
+      const lng1 = Number(start[0]);
+      const lat1 = Number(start[1]);
+      const lng2 = Number(end[0]);
+      const lat2 = Number(end[1]);
+      const dx = lng2 - lng1;
+      const dy = lat2 - lat1;
+      const length = Math.sqrt(dx * dx + dy * dy) || 1;
+      const offset = Math.min(length * 0.16, 0.035) * curveDir;
+      const normalLng = -dy / length;
+      const normalLat = dx / length;
+      const pointCount = Math.max(30, Math.min(100, Math.ceil(length * 900)));
+      for (let i = 0; i <= pointCount; i += 1) {
+        const t = i / pointCount;
+        const wave = Math.sin(Math.PI * t) * offset;
+        points.push([lng1 + dx * t + normalLng * wave, lat1 + dy * t + normalLat * wave]);
+      }
+      return points;
+    }
+
+    function routeMarkerContent(point, index, color) {
+      const type = point.type || "attraction";
+      const label = type === "start" ? "🏨" : type === "end" ? "⌂" : String(index + 1);
+      const style = type === "transit" ? `color:${color}` : `background:${color}`;
+      return `<div class="route-marker ${type}" style="${style}">${label}</div>`;
+    }
+
+    function drawTransportIcon(position, transport, color) {
+      const icon = transportIcon(transport);
+      if (!icon) return;
+      const marker = new AMap.Marker({
+        position,
+        content: `<div class="transport-chip" style="color:${color}">${icon}</div>`,
+        offset: new AMap.Pixel(-14, -14),
+        zIndex: 90
+      });
+      routeMap.add(marker);
+    }
+
+    function drawRoute(route, color, routeIndex) {
+      const points = (route.points || []).filter(validPosition);
+      points.forEach((point, index) => {
+        const position = [Number(point.position[0]), Number(point.position[1])];
+        const marker = new AMap.Marker({
+          position,
+          title: point.name,
+          content: routeMarkerContent(point, index, color),
+          offset: new AMap.Pixel(-17, -17),
+          zIndex: point.type === "start" ? 120 : 100
+        });
+        const info = new AMap.InfoWindow({
+          content: `<div style="padding:10px;"><strong>Day ${route.day || routeIndex + 1} · ${point.name || ""}</strong><br>${route.title || ""}</div>`,
+          offset: new AMap.Pixel(0, -28)
+        });
+        marker.on("click", () => info.open(routeMap, position));
+        routeMap.add(marker);
+      });
+
+      for (let index = 0; index < points.length - 1; index += 1) {
+        const start = points[index].position;
+        const end = points[index + 1].position;
+        const next = points[index + 1];
+        const isReturn = next.type === "end";
+        const path = generateSmoothPath(start, end, index % 2 === 0 ? 1 : -1);
+        const polyline = new AMap.Polyline({
+          path,
+          strokeColor: isReturn ? "#9ca3af" : color,
+          strokeOpacity: isReturn ? 0.5 : 0.82,
+          strokeWeight: isReturn ? 3 : 4,
+          strokeStyle: isReturn ? "dashed" : "solid",
+          lineJoin: "round",
+          lineCap: "round",
+          showDir: !isReturn,
+          dirPos: "mid",
+          dirColor: isReturn ? "#9ca3af" : color
+        });
+        routeMap.add(polyline);
+        if (!isReturn) {
+          const middle = path[Math.floor(path.length / 2)];
+          drawTransportIcon(middle, next.transport, color);
+        }
+      }
+    }
+
+    function renderRouteFallback() {
+      const mapNode = document.getElementById("route-map-container");
+      if (!mapNode) return;
+      const rows = ROUTES.map((route) => {
+        const stops = (route.points || []).map((point, index) => `<li>${index + 1}. ${point.name || ""}</li>`).join("");
+        return `<section style="margin-bottom:14px;"><strong>Day ${route.day || ""} ${route.title || ""}</strong><ol>${stops}</ol></section>`;
+      }).join("");
+      mapNode.innerHTML = `<div class="map-fallback"><p>未启用实时高德地图，以下为路线顺序。</p>${rows || "<p>暂无路线。</p>"}</div>`;
+    }
+
+    function initRouteMap() {
+      if (routeMapInitialized) return;
+      const mapNode = document.getElementById("route-map-container");
+      if (!mapNode) return;
+      if (!AMAP_KEY || !window.AMap || !ROUTES.length) {
+        renderRouteFallback();
+        routeMapInitialized = true;
+        return;
+      }
+      const firstRoute = ROUTES.find((route) => (route.points || []).some(validPosition)) || {};
+      const firstPoint = (firstRoute.points || []).find(validPosition);
+      const center = firstPoint ? [Number(firstPoint.position[0]), Number(firstPoint.position[1])] : [116.397, 39.908];
+      mapNode.innerHTML = "";
+      routeMap = new AMap.Map("route-map-container", {
+        zoom: 11,
+        center,
+        viewMode: "2D"
+      });
+      AMap.plugin(["AMap.ToolBar", "AMap.Scale"], function() {
+        routeMap.addControl(new AMap.ToolBar({ position: "RT" }));
+        routeMap.addControl(new AMap.Scale());
+      });
+      ROUTES.forEach((route, index) => drawRoute(route, routeColor(route, index), index));
+      const allPositions = ROUTES.flatMap((route) => (route.points || []).filter(validPosition).map((point) => new AMap.Marker({ position: [Number(point.position[0]), Number(point.position[1])] })));
+      if (allPositions.length) {
+        routeMap.setFitView(allPositions, false, [70, 70, 70, 70]);
+      }
+      routeMapInitialized = true;
+    }
+
+    function focusPoint(index) {
+      const entry = markerIndex[index];
+      if (!map || !entry) return;
+      map.setZoomAndCenter(14, entry.position, false, 500);
+      entry.info.open(map, entry.position);
+    }
+
+    function initMap() {
+      if (!AMAP_KEY || !window.AMap) {
+        renderFallbackMap();
+        return;
+      }
+      renderLegend();
+      const first = MAP_POINTS[0] || { lng: 116.397, lat: 39.908 };
+      map = new AMap.Map("map-container", {
+        zoom: 11,
+        center: [Number(first.lng), Number(first.lat)],
+        viewMode: "2D"
+      });
+      AMap.plugin(["AMap.ToolBar", "AMap.Scale"], function() {
+        map.addControl(new AMap.ToolBar({ position: "RT" }));
+        map.addControl(new AMap.Scale());
+      });
+      MAP_POINTS.forEach((point, index) => {
+        const position = [Number(point.lng), Number(point.lat)];
+        const content = `<div style="background:${pointColor(point.type)};color:white;padding:4px 10px;border-radius:15px;font-size:12px;font-weight:bold;white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,0.3);">${pointIcon(point.type)} ${point.name || ""}</div>`;
+        const marker = new AMap.Marker({
+          position,
+          title: point.name,
+          content,
+          offset: new AMap.Pixel(-30, -15)
+        });
+        const info = new AMap.InfoWindow({
+          content: `<div style="padding:10px;"><strong>${pointIcon(point.type)} ${point.name || ""}</strong><br>${point.address || ""}</div>`,
+          offset: new AMap.Pixel(0, -30)
+        });
+        marker.on("click", () => info.open(map, position));
+        markerIndex[index] = { marker, info, position };
+        map.add(marker);
+      });
+      if (markerIndex.length) {
+        map.setFitView(markerIndex.map((entry) => entry.marker), false, [80, 80, 80, 80]);
+      }
+    }
+
+    function renderFoodFallback() {
+      const legend = document.getElementById("food-map-legend");
+      const mapNode = document.getElementById("food-map-container");
+      if (!FOODS || FOODS.length === 0) {
+        if (legend) legend.innerHTML = "<h3>美食地图</h3><div class='legend-item'>暂无美食数据</div>";
+        if (mapNode) mapNode.innerHTML = "<div class='map-fallback'>暂无美食推荐数据。</div>";
+        return;
+      }
+      const items = FOODS.map((food) => {
+        const isSnack = food.category === "snack";
+        const color = isSnack ? "#10b981" : "#ff6b35";
+        const icon = isSnack ? "🍜" : "🍽️";
+        return `
+        <div class="legend-item">
+          <span class="legend-color" style="background:${color}"></span>
+          <span>
+            <div class="legend-name">${icon} ${food.name || ""}</div>
+            <div class="legend-meta">${food.address || ""} ${food.rating ? '⭐' + food.rating : ''} ${food.avg_price ? '¥' + food.avg_price + '/人' : ''}</div>
+          </span>
+        </div>
+      `}).join("");
+      if (legend) legend.innerHTML = `<h3>美食地图</h3>${items}`;
+      const rows = FOODS.map((food) => {
+        const isSnack = food.category === "snack";
+        const icon = isSnack ? "🍜" : "🍽️";
+        return `<li>${icon} <strong>${food.name}</strong>：${food.address || ""} ${food.rating ? '⭐' + food.rating : ''} ${food.avg_price ? '¥' + food.avg_price + '/人' : ''}</li>`;
+      }).join("");
+      if (mapNode) mapNode.innerHTML = `<div class="map-fallback"><p>未启用实时高德地图，以下为已收集的美食信息。</p><ul>${rows}</ul></div>`;
+    }
+
+    function initFoodMap() {
+      if (foodMapInitialized) return;
+      const mapNode = document.getElementById("food-map-container");
+      if (!mapNode) return;
+      if (!AMAP_KEY || !window.AMap || !FOODS || FOODS.length === 0) {
+        renderFoodFallback();
+        foodMapInitialized = true;
+        return;
+      }
+      const firstFood = FOODS.find(f => f.lng && f.lat) || {};
+      const center = firstFood.lng ? [Number(firstFood.lng), Number(firstFood.lat)] : [116.397, 39.908];
+      mapNode.innerHTML = "";
+      const legendHtml = '<div class="legend" id="food-map-legend"><h3>美食地图</h3></div>';
+      mapNode.innerHTML = '<div class="map-fallback">美食地图加载中...</div>' + legendHtml;
+      const legend = document.getElementById("food-map-legend");
+      foodMap = new AMap.Map("food-map-container", {
+        zoom: 12,
+        center: center,
+        viewMode: "2D"
+      });
+      AMap.plugin(["AMap.ToolBar", "AMap.Scale"], function() {
+        foodMap.addControl(new AMap.ToolBar({ position: "RT" }));
+        foodMap.addControl(new AMap.Scale());
+      });
+      const markers = [];
+      const legendItems = [];
+      FOODS.forEach((food) => {
+        if (!food.lng || !food.lat) return;
+        const isSnack = food.category === "snack";
+        const color = isSnack ? "#10b981" : "#ff6b35";
+        const icon = isSnack ? "🍜" : "🍽️";
+        const label = isSnack ? "小吃" : "正餐";
+        const position = [Number(food.lng), Number(food.lat)];
+        const content = `<div style="background:${color};color:white;padding:4px 10px;border-radius:15px;font-size:12px;font-weight:bold;white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,0.3);">${icon} ${food.name || ""}</div>`;
+        const marker = new AMap.Marker({
+          position: position,
+          title: food.name,
+          content: content,
+          offset: new AMap.Pixel(-30, -15)
+        });
+        const infoContent = `<div style="padding:10px;min-width:180px;">
+          <strong style="font-size:14px;">${icon} ${food.name || ""}</strong><br>
+          <span style="display:inline-block;background:${color};color:white;padding:2px 8px;border-radius:10px;font-size:11px;margin:4px 0;">${label}</span><br>
+          <span style="color:#667085;font-size:12px;">${food.address || ""}</span><br>
+          ${food.rating ? '<span style="color:#b45309;font-size:12px;">⭐ ' + food.rating + '</span>' : ''}
+          ${food.avg_price ? '<span style="color:#e74c3c;font-size:12px;margin-left:8px;">¥' + food.avg_price + '/人</span>' : ''}
+        </div>`;
+        const info = new AMap.InfoWindow({
+          content: infoContent,
+          offset: new AMap.Pixel(0, -30)
+        });
+        marker.on("click", () => info.open(foodMap, position));
+        foodMap.add(marker);
+        markers.push(marker);
+        legendItems.push(`<div class="legend-item"><span class="legend-color" style="background:${color}"></span><span><div class="legend-name">${icon} ${food.name || ""}</div><div class="legend-meta">${food.address || ""} ${food.rating ? '⭐' + food.rating : ''} ${food.avg_price ? '¥' + food.avg_price + '/人' : ''}</div></span></div>`);
+      });
+      if (legend) legend.innerHTML = `<h3>美食地图</h3><div style="margin-bottom:8px;font-size:12px;color:#667085;"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#ff6b35;margin-right:4px;"></span>正餐 <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#10b981;margin-left:12px;margin-right:4px;"></span>小吃</div>${legendItems.join("") || "<div class='legend-item'>暂无美食数据</div>"}`;
+      if (markers.length) {
+        foodMap.setFitView(markers, false, [80, 80, 80, 80]);
+      }
+      foodMapInitialized = true;
+    }
+
+    function initAllMaps() {
+      initMap();
+      if (document.getElementById("page-route")?.classList.contains("active")) {
+        initRouteMap();
+      }
+      if (document.getElementById("page-foods")?.classList.contains("active")) {
+        initFoodMap();
+      }
+    }
+
+    if (AMAP_KEY) {
+      window._AMapSecurityConfig = { securityJsCode: AMAP_SECURITY_JS_CODE };
+      const script = document.createElement("script");
+      script.src = `https://webapi.amap.com/maps?v=2.0&key=${encodeURIComponent(AMAP_KEY)}&callback=initAllMaps`;
+      script.onerror = () => {
+        renderFallbackMap();
+        renderRouteFallback();
+        renderFoodFallback();
+      };
+      document.head.appendChild(script);
+    } else {
+      renderFallbackMap();
+      renderRouteFallback();
+      renderFoodFallback();
+    }
+  </script>
+</body>
+</html>
